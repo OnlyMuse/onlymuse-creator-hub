@@ -1,0 +1,669 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle, Shield, User, Briefcase, ArrowLeft, ArrowRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface FormData {
+  isOver18: boolean;
+  profileType: 'model' | 'client' | '';
+  // Model fields
+  artisticName: string;
+  email: string;
+  country: string;
+  city: string;
+  languages: string[];
+  socialLinks: {
+    instagram: string;
+    tiktok: string;
+    twitter: string;
+  };
+  onlyFansLink: string;
+  experience: string;
+  timeAvailable: string;
+  goals: string[];
+  currentEarnings: string;
+  contactPreference: string;
+  phone: string;
+  // Client fields
+  companyName: string;
+  businessType: string;
+  budget: string;
+  objectives: string;
+  // Consent
+  privacyConsent: boolean;
+}
+
+const LeadForm = () => {
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [formData, setFormData] = useState<FormData>({
+    isOver18: false,
+    profileType: '',
+    artisticName: '',
+    email: '',
+    country: '',
+    city: '',
+    languages: [],
+    socialLinks: {
+      instagram: '',
+      tiktok: '',
+      twitter: ''
+    },
+    onlyFansLink: '',
+    experience: '',
+    timeAvailable: '',
+    goals: [],
+    currentEarnings: '',
+    contactPreference: '',
+    phone: '',
+    companyName: '',
+    businessType: '',
+    budget: '',
+    objectives: '',
+    privacyConsent: false
+  });
+
+  const steps = [
+    { id: 0, title: "Verificación 18+", icon: Shield },
+    { id: 1, title: "Tipo de Perfil", icon: User },
+    { id: 2, title: "Información Personal", icon: User },
+    { id: 3, title: "Consentimientos", icon: CheckCircle }
+  ];
+
+  const countries = [
+    "España", "México", "Argentina", "Colombia", "Chile", "Perú", "Venezuela", 
+    "Ecuador", "Uruguay", "Paraguay", "Bolivia", "Estados Unidos", "Otro"
+  ];
+
+  const languages = [
+    "Español", "Inglés", "Francés", "Alemán", "Italiano", "Portugués", "Ruso", "Japonés"
+  ];
+
+  const experienceOptions = [
+    { value: "none", label: "Sin experiencia" },
+    { value: "under-6m", label: "Menos de 6 meses" },
+    { value: "6-12m", label: "6-12 meses" },
+    { value: "1-2y", label: "1-2 años" },
+    { value: "over-2y", label: "Más de 2 años" }
+  ];
+
+  const goalOptions = [
+    "Aumentar ingresos", "Crecer audiencia", "Mejorar contenido", 
+    "Estrategia de marca", "Optimizar tiempo", "Profesionalización"
+  ];
+
+  const earningsOptions = [
+    { value: "0-500", label: "$0 - $500/mes" },
+    { value: "500-2000", label: "$500 - $2,000/mes" },
+    { value: "2000-5000", label: "$2,000 - $5,000/mes" },
+    { value: "5000-10000", label: "$5,000 - $10,000/mes" },
+    { value: "over-10000", label: "Más de $10,000/mes" }
+  ];
+
+  const progress = ((currentStep + 1) / steps.length) * 100;
+
+  const nextStep = () => {
+    if (validateCurrentStep()) {
+      setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+    }
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 0));
+  };
+
+  const validateCurrentStep = () => {
+    switch (currentStep) {
+      case 0:
+        if (!formData.isOver18) {
+          toast({
+            title: "Verificación requerida",
+            description: "Debes confirmar que eres mayor de 18 años para continuar.",
+            variant: "destructive"
+          });
+          return false;
+        }
+        return true;
+      case 1:
+        if (!formData.profileType) {
+          toast({
+            title: "Selección requerida",
+            description: "Por favor selecciona tu tipo de perfil.",
+            variant: "destructive"
+          });
+          return false;
+        }
+        return true;
+      case 2:
+        if (formData.profileType === 'model') {
+          if (!formData.artisticName || !formData.email || !formData.country) {
+            toast({
+              title: "Campos requeridos",
+              description: "Por favor completa todos los campos obligatorios.",
+              variant: "destructive"
+            });
+            return false;
+          }
+          // Validate at least one social link
+          const hasSocialLink = Object.values(formData.socialLinks).some(link => link.trim() !== '');
+          if (!hasSocialLink) {
+            toast({
+              title: "Red social requerida",
+              description: "Proporciona al menos un enlace de red social.",
+              variant: "destructive"
+            });
+            return false;
+          }
+        } else if (formData.profileType === 'client') {
+          if (!formData.companyName || !formData.email || !formData.businessType) {
+            toast({
+              title: "Campos requeridos",
+              description: "Por favor completa todos los campos obligatorios.",
+              variant: "destructive"
+            });
+            return false;
+          }
+        }
+        return true;
+      case 3:
+        if (!formData.privacyConsent) {
+          toast({
+            title: "Consentimiento requerido",
+            description: "Debes aceptar la política de privacidad para continuar.",
+            variant: "destructive"
+          });
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
+  };
+
+  const handleSubmit = () => {
+    if (validateCurrentStep()) {
+      // Save form data to localStorage
+      localStorage.setItem('onlyMuseLeadData', JSON.stringify({
+        ...formData,
+        submittedAt: new Date().toISOString()
+      }));
+
+      toast({
+        title: "¡Solicitud enviada con éxito!",
+        description: "Te contactaremos en las próximas 24 horas.",
+      });
+
+      // Reset form
+      setFormData({
+        isOver18: false,
+        profileType: '',
+        artisticName: '',
+        email: '',
+        country: '',
+        city: '',
+        languages: [],
+        socialLinks: { instagram: '', tiktok: '', twitter: '' },
+        onlyFansLink: '',
+        experience: '',
+        timeAvailable: '',
+        goals: [],
+        currentEarnings: '',
+        contactPreference: '',
+        phone: '',
+        companyName: '',
+        businessType: '',
+        budget: '',
+        objectives: '',
+        privacyConsent: false
+      });
+      setCurrentStep(0);
+    }
+  };
+
+  const toggleLanguage = (language: string) => {
+    setFormData(prev => ({
+      ...prev,
+      languages: prev.languages.includes(language)
+        ? prev.languages.filter(l => l !== language)
+        : [...prev.languages, language]
+    }));
+  };
+
+  const toggleGoal = (goal: string) => {
+    setFormData(prev => ({
+      ...prev,
+      goals: prev.goals.includes(goal)
+        ? prev.goals.filter(g => g !== goal)
+        : [...prev.goals, goal]
+    }));
+  };
+
+  return (
+    <section id="aplicar" className="py-20 bg-gradient-to-br from-background to-primary/5">
+      <div className="container mx-auto px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <Badge variant="outline" className="mb-4 border-primary text-primary">
+              Proceso de Aplicación
+            </Badge>
+            <h2 className="text-3xl font-bold mb-4">
+              Comienza tu transformación digital
+            </h2>
+            <p className="text-muted-foreground">
+              Completa este formulario para una evaluación personalizada
+            </p>
+          </div>
+
+          <Card className="p-8">
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex justify-between mb-2">
+                {steps.map((step, index) => {
+                  const IconComponent = step.icon;
+                  return (
+                    <div 
+                      key={step.id} 
+                      className={`flex flex-col items-center ${
+                        index <= currentStep ? 'text-primary' : 'text-muted-foreground'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
+                        index <= currentStep ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                      }`}>
+                        <IconComponent size={16} />
+                      </div>
+                      <span className="text-xs font-medium hidden sm:block">{step.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+
+            {/* Step Content */}
+            <div className="space-y-6">
+              {/* Step 0: Age Verification */}
+              {currentStep === 0 && (
+                <div className="text-center space-y-6">
+                  <Shield className="w-16 h-16 text-primary mx-auto" />
+                  <h3 className="text-2xl font-semibold">Verificación de Edad</h3>
+                  <p className="text-muted-foreground">
+                    OnlyMuse trabaja exclusivamente con personas mayores de 18 años. 
+                    Esta verificación es obligatoria por motivos legales y de cumplimiento.
+                  </p>
+                  <div className="flex items-center space-x-2 justify-center">
+                    <Checkbox
+                      id="over18"
+                      checked={formData.isOver18}
+                      onCheckedChange={(checked) => 
+                        setFormData(prev => ({ ...prev, isOver18: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="over18" className="text-base font-medium">
+                      Confirmo que tengo 18 años o más
+                    </Label>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 1: Profile Type */}
+              {currentStep === 1 && (
+                <div className="space-y-6">
+                  <h3 className="text-2xl font-semibold text-center">Selecciona tu perfil</h3>
+                  <RadioGroup
+                    value={formData.profileType}
+                    onValueChange={(value) => 
+                      setFormData(prev => ({ ...prev, profileType: value as 'model' | 'client' }))
+                    }
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Label htmlFor="model" className="cursor-pointer">
+                        <Card className={`p-6 hover:border-primary transition-colors ${
+                          formData.profileType === 'model' ? 'border-primary bg-primary/5' : ''
+                        }`}>
+                          <RadioGroupItem value="model" id="model" className="sr-only" />
+                          <User className="w-8 h-8 text-primary mb-4" />
+                          <h4 className="font-semibold mb-2">Soy Modelo/Creador(a)</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Quiero hacer crecer mi negocio en OnlyFans con gestión profesional
+                          </p>
+                        </Card>
+                      </Label>
+
+                      <Label htmlFor="client" className="cursor-pointer">
+                        <Card className={`p-6 hover:border-primary transition-colors ${
+                          formData.profileType === 'client' ? 'border-primary bg-primary/5' : ''
+                        }`}>
+                          <RadioGroupItem value="client" id="client" className="sr-only" />
+                          <Briefcase className="w-8 h-8 text-primary mb-4" />
+                          <h4 className="font-semibold mb-2">Soy Cliente/Empresa</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Busco servicios profesionales para modelos o consultoría estratégica
+                          </p>
+                        </Card>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              )}
+
+              {/* Step 2: Personal Information */}
+              {currentStep === 2 && (
+                <div className="space-y-6">
+                  <h3 className="text-2xl font-semibold text-center">
+                    {formData.profileType === 'model' ? 'Información del Modelo' : 'Información de la Empresa'}
+                  </h3>
+
+                  {formData.profileType === 'model' ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="artisticName">Nombre Artístico *</Label>
+                          <Input
+                            id="artisticName"
+                            value={formData.artisticName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, artisticName: e.target.value }))}
+                            placeholder="Tu nombre artístico"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="email">Email *</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                            placeholder="tu@email.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="country">País *</Label>
+                          <Select value={formData.country} onValueChange={(value) => 
+                            setFormData(prev => ({ ...prev, country: value }))
+                          }>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona tu país" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {countries.map((country) => (
+                                <SelectItem key={country} value={country}>{country}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="city">Ciudad</Label>
+                          <Input
+                            id="city"
+                            value={formData.city}
+                            onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                            placeholder="Tu ciudad"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Idiomas que hablas</Label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                          {languages.map((language) => (
+                            <Label key={language} className="flex items-center space-x-2 cursor-pointer">
+                              <Checkbox
+                                checked={formData.languages.includes(language)}
+                                onCheckedChange={() => toggleLanguage(language)}
+                              />
+                              <span className="text-sm">{language}</span>
+                            </Label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Redes Sociales (al menos una requerida)</Label>
+                        <div className="space-y-3 mt-2">
+                          <div>
+                            <Label htmlFor="instagram" className="text-sm text-muted-foreground">Instagram</Label>
+                            <Input
+                              id="instagram"
+                              value={formData.socialLinks.instagram}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                socialLinks: { ...prev.socialLinks, instagram: e.target.value }
+                              }))}
+                              placeholder="https://instagram.com/tu-usuario"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="tiktok" className="text-sm text-muted-foreground">TikTok</Label>
+                            <Input
+                              id="tiktok"
+                              value={formData.socialLinks.tiktok}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                socialLinks: { ...prev.socialLinks, tiktok: e.target.value }
+                              }))}
+                              placeholder="https://tiktok.com/@tu-usuario"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="twitter" className="text-sm text-muted-foreground">X/Twitter</Label>
+                            <Input
+                              id="twitter"
+                              value={formData.socialLinks.twitter}
+                              onChange={(e) => setFormData(prev => ({
+                                ...prev,
+                                socialLinks: { ...prev.socialLinks, twitter: e.target.value }
+                              }))}
+                              placeholder="https://twitter.com/tu-usuario"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="onlyFans">OnlyFans (opcional)</Label>
+                        <Input
+                          id="onlyFans"
+                          value={formData.onlyFansLink}
+                          onChange={(e) => setFormData(prev => ({ ...prev, onlyFansLink: e.target.value }))}
+                          placeholder="https://onlyfans.com/tu-usuario"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="experience">Experiencia en OnlyFans</Label>
+                          <Select value={formData.experience} onValueChange={(value) => 
+                            setFormData(prev => ({ ...prev, experience: value }))
+                          }>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona tu experiencia" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {experienceOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="currentEarnings">Ingresos actuales (opcional)</Label>
+                          <Select value={formData.currentEarnings} onValueChange={(value) => 
+                            setFormData(prev => ({ ...prev, currentEarnings: value }))
+                          }>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Rango de ingresos" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {earningsOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Objetivos principales (selecciona todos los que apliquen)</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                          {goalOptions.map((goal) => (
+                            <Label key={goal} className="flex items-center space-x-2 cursor-pointer">
+                              <Checkbox
+                                checked={formData.goals.includes(goal)}
+                                onCheckedChange={() => toggleGoal(goal)}
+                              />
+                              <span className="text-sm">{goal}</span>
+                            </Label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Client form
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="companyName">Nombre de la Empresa *</Label>
+                          <Input
+                            id="companyName"
+                            value={formData.companyName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                            placeholder="Nombre de tu empresa"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="clientEmail">Email *</Label>
+                          <Input
+                            id="clientEmail"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                            placeholder="email@empresa.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="businessType">Tipo de Negocio *</Label>
+                        <Input
+                          id="businessType"
+                          value={formData.businessType}
+                          onChange={(e) => setFormData(prev => ({ ...prev, businessType: e.target.value }))}
+                          placeholder="Ej: Agencia de marketing, Productora de contenido, etc."
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="budget">Presupuesto Mensual</Label>
+                        <Select value={formData.budget} onValueChange={(value) => 
+                          setFormData(prev => ({ ...prev, budget: value }))
+                        }>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona tu rango de presupuesto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="under-5k">Menos de $5,000</SelectItem>
+                            <SelectItem value="5k-15k">$5,000 - $15,000</SelectItem>
+                            <SelectItem value="15k-50k">$15,000 - $50,000</SelectItem>
+                            <SelectItem value="over-50k">Más de $50,000</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="objectives">Objetivos y Necesidades</Label>
+                        <Textarea
+                          id="objectives"
+                          value={formData.objectives}
+                          onChange={(e) => setFormData(prev => ({ ...prev, objectives: e.target.value }))}
+                          placeholder="Describe qué servicios necesitas y cuáles son tus objetivos..."
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: Consent */}
+              {currentStep === 3 && (
+                <div className="text-center space-y-6">
+                  <CheckCircle className="w-16 h-16 text-primary mx-auto" />
+                  <h3 className="text-2xl font-semibold">Consentimientos Finales</h3>
+                  <div className="space-y-4 text-left">
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        id="privacy"
+                        checked={formData.privacyConsent}
+                        onCheckedChange={(checked) => 
+                          setFormData(prev => ({ ...prev, privacyConsent: checked as boolean }))
+                        }
+                      />
+                      <div>
+                        <Label htmlFor="privacy" className="text-base font-medium">
+                          Acepto la política de privacidad y el tratamiento de datos *
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Tus datos serán tratados de forma confidencial y únicamente para proporcionarte 
+                          los servicios solicitados. Puedes solicitar su eliminación en cualquier momento.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-primary/5 p-4 rounded-lg text-sm text-muted-foreground">
+                    <p className="font-medium mb-2">Próximos pasos:</p>
+                    <ul className="text-left space-y-1">
+                      <li>• Recibirás un email de confirmación inmediatamente</li>
+                      <li>• Nuestro equipo revisará tu aplicación en 24-48 horas</li>
+                      <li>• Te contactaremos para agendar una consulta gratuita</li>
+                      <li>• Desarrollaremos una estrategia personalizada para ti</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-8 pt-6 border-t">
+              <Button
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft size={16} />
+                Anterior
+              </Button>
+
+              {currentStep < steps.length - 1 ? (
+                <Button onClick={nextStep} className="flex items-center gap-2">
+                  Siguiente
+                  <ArrowRight size={16} />
+                </Button>
+              ) : (
+                <Button onClick={handleSubmit} className="flex items-center gap-2 bg-success hover:bg-success/90">
+                  Enviar Aplicación
+                  <CheckCircle size={16} />
+                </Button>
+              )}
+            </div>
+          </Card>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default LeadForm;
