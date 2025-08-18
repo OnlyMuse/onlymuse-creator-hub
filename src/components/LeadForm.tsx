@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Shield, User, Briefcase, ArrowLeft, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FormData {
   isOver18: boolean;
@@ -189,43 +190,79 @@ const LeadForm = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateCurrentStep()) {
-      // Save form data to localStorage
-      localStorage.setItem('onlyMuseLeadData', JSON.stringify({
-        ...formData,
-        submittedAt: new Date().toISOString()
-      }));
+      try {
+        // Save to Supabase
+        const leadData = {
+          profile_type: formData.profileType,
+          email: formData.email,
+          // Model specific fields
+          artistic_name: formData.profileType === 'model' ? formData.artisticName : null,
+          country: formData.profileType === 'model' ? formData.country : null,
+          city: formData.profileType === 'model' ? formData.city : null,
+          languages: formData.profileType === 'model' ? formData.languages : null,
+          social_links: formData.profileType === 'model' ? formData.socialLinks : null,
+          onlyfans_link: formData.profileType === 'model' ? formData.onlyFansLink || null : null,
+          experience: formData.profileType === 'model' ? formData.experience : null,
+          time_available: formData.profileType === 'model' ? formData.timeAvailable : null,
+          goals: formData.profileType === 'model' ? formData.goals : null,
+          current_earnings: formData.profileType === 'model' ? formData.currentEarnings : null,
+          contact_preference: formData.profileType === 'model' ? formData.contactPreference : null,
+          phone: formData.profileType === 'model' ? formData.phone || null : null,
+          // Client specific fields
+          company_name: formData.profileType === 'client' ? formData.companyName : null,
+          business_type: formData.profileType === 'client' ? formData.businessType : null,
+          budget: formData.profileType === 'client' ? formData.budget : null,
+          objectives: formData.profileType === 'client' ? formData.objectives : null,
+        };
 
-      toast({
-        title: "¡Solicitud enviada con éxito!",
-        description: "Te contactaremos en las próximas 24 horas.",
-      });
+        const { error } = await supabase
+          .from('leads')
+          .insert([leadData]);
 
-      // Reset form
-      setFormData({
-        isOver18: false,
-        profileType: '',
-        artisticName: '',
-        email: '',
-        country: '',
-        city: '',
-        languages: [],
-        socialLinks: { instagram: '', tiktok: '', twitter: '' },
-        onlyFansLink: '',
-        experience: '',
-        timeAvailable: '',
-        goals: [],
-        currentEarnings: '',
-        contactPreference: '',
-        phone: '',
-        companyName: '',
-        businessType: '',
-        budget: '',
-        objectives: '',
-        privacyConsent: false
-      });
-      setCurrentStep(0);
+        if (error) {
+          throw error;
+        }
+
+        toast({
+          title: "¡Solicitud enviada con éxito!",
+          description: "Te contactaremos en las próximas 24 horas.",
+        });
+
+        // Reset form
+        setFormData({
+          isOver18: false,
+          profileType: '',
+          artisticName: '',
+          email: '',
+          country: '',
+          city: '',
+          languages: [],
+          socialLinks: { instagram: '', tiktok: '', twitter: '' },
+          onlyFansLink: '',
+          experience: '',
+          timeAvailable: '',
+          goals: [],
+          currentEarnings: '',
+          contactPreference: '',
+          phone: '',
+          companyName: '',
+          businessType: '',
+          budget: '',
+          objectives: '',
+          privacyConsent: false
+        });
+        setCurrentStep(0);
+
+      } catch (error) {
+        console.error('Error saving lead:', error);
+        toast({
+          title: "Error al enviar solicitud",
+          description: "Hubo un problema. Por favor, intenta de nuevo.",
+          variant: "destructive"
+        });
+      }
     }
   };
 

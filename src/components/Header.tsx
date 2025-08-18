@@ -11,7 +11,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
               <img 
                 src="/lovable-uploads/6318e933-6850-4026-b87e-fe0773b164dd.png" 
                 alt="OnlyMuse" 
@@ -23,29 +23,56 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#inicio" className="text-muted-foreground hover:text-primary transition-colors">
+            <a 
+              href="#inicio" 
+              className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('inicio')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Inicio
             </a>
-            <a href="#servicios" className="text-muted-foreground hover:text-primary transition-colors">
+            <a 
+              href="#servicios" 
+              className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('servicios')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Servicios
             </a>
-            <a href="#proceso" className="text-muted-foreground hover:text-primary transition-colors">
+            <a 
+              href="#proceso" 
+              className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('proceso')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Proceso
             </a>
-            <a href="#faq" className="text-muted-foreground hover:text-primary transition-colors">
+            <a 
+              href="#faq" 
+              className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               FAQ
             </a>
           </nav>
 
           {/* CTA Button */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex">
             <Button 
-              variant="outline" 
-              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              className="bg-primary hover:bg-primary-hover"
+              onClick={() => {
+                document.getElementById('aplicar')?.scrollIntoView({ behavior: 'smooth' });
+              }}
             >
-              Soy Cliente
-            </Button>
-            <Button className="bg-primary hover:bg-primary-hover">
               Aplicar como Modelo
             </Button>
           </div>
@@ -63,26 +90,58 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <nav className="flex flex-col space-y-4">
-              <a href="#inicio" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href="#inicio" 
+                className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('inicio')?.scrollIntoView({ behavior: 'smooth' });
+                  setIsMenuOpen(false);
+                }}
+              >
                 Inicio
               </a>
-              <a href="#servicios" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href="#servicios" 
+                className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('servicios')?.scrollIntoView({ behavior: 'smooth' });
+                  setIsMenuOpen(false);
+                }}
+              >
                 Servicios
               </a>
-              <a href="#proceso" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href="#proceso" 
+                className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('proceso')?.scrollIntoView({ behavior: 'smooth' });
+                  setIsMenuOpen(false);
+                }}
+              >
                 Proceso
               </a>
-              <a href="#faq" className="text-muted-foreground hover:text-primary transition-colors">
+              <a 
+                href="#faq" 
+                className="text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                  setIsMenuOpen(false);
+                }}
+              >
                 FAQ
               </a>
-              <div className="flex flex-col space-y-2 pt-4">
+              <div className="pt-4">
                 <Button 
-                  variant="outline" 
-                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                  className="bg-primary hover:bg-primary-hover w-full"
+                  onClick={() => {
+                    document.getElementById('aplicar')?.scrollIntoView({ behavior: 'smooth' });
+                    setIsMenuOpen(false);
+                  }}
                 >
-                  Soy Cliente
-                </Button>
-                <Button className="bg-primary hover:bg-primary-hover">
                   Aplicar como Modelo
                 </Button>
               </div>

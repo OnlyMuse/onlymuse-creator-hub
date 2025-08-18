@@ -14,7 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leads: {
+        Row: {
+          artistic_name: string | null
+          budget: string | null
+          business_type: string | null
+          city: string | null
+          company_name: string | null
+          contact_preference: string | null
+          country: string | null
+          created_at: string
+          current_earnings: string | null
+          email: string
+          experience: string | null
+          goals: string[] | null
+          id: string
+          languages: string[] | null
+          objectives: string | null
+          onlyfans_link: string | null
+          phone: string | null
+          profile_type: string
+          social_links: Json | null
+          time_available: string | null
+          updated_at: string
+        }
+        Insert: {
+          artistic_name?: string | null
+          budget?: string | null
+          business_type?: string | null
+          city?: string | null
+          company_name?: string | null
+          contact_preference?: string | null
+          country?: string | null
+          created_at?: string
+          current_earnings?: string | null
+          email: string
+          experience?: string | null
+          goals?: string[] | null
+          id?: string
+          languages?: string[] | null
+          objectives?: string | null
+          onlyfans_link?: string | null
+          phone?: string | null
+          profile_type: string
+          social_links?: Json | null
+          time_available?: string | null
+          updated_at?: string
+        }
+        Update: {
+          artistic_name?: string | null
+          budget?: string | null
+          business_type?: string | null
+          city?: string | null
+          company_name?: string | null
+          contact_preference?: string | null
+          country?: string | null
+          created_at?: string
+          current_earnings?: string | null
+          email?: string
+          experience?: string | null
+          goals?: string[] | null
+          id?: string
+          languages?: string[] | null
+          objectives?: string | null
+          onlyfans_link?: string | null
+          phone?: string | null
+          profile_type?: string
+          social_links?: Json | null
+          time_available?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
