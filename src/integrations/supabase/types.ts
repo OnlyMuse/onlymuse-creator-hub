@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          last_login: string | null
+          name: string
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          last_login?: string | null
+          name: string
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          last_login?: string | null
+          name?: string
+          password_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           artistic_name: string | null
@@ -91,7 +121,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_admin_last_login: {
+        Args: { admin_id: string }
+        Returns: undefined
+      }
+      verify_admin_credentials: {
+        Args: { input_email: string; input_password: string }
+        Returns: {
+          admin_email: string
+          admin_id: string
+          admin_name: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
