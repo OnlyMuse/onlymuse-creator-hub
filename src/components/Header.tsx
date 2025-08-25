@@ -63,6 +63,12 @@ const Header = () => {
             >
               FAQ
             </a>
+            <a 
+              href="/admin" 
+              className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
+            >
+              Admin
+            </a>
           </nav>
 
           {/* CTA Button */}
