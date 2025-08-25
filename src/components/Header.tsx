@@ -64,7 +64,7 @@ const Header = () => {
               FAQ
             </a>
             <a 
-              href="/admin" 
+              href="/admin/login" 
               className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
             >
               Admin
