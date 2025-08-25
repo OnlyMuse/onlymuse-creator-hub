@@ -11,8 +11,10 @@ import {
   Star,
   Headphones
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Services = () => {
+  const { t } = useLanguage();
   const services = [
     {
       icon: Settings,
@@ -53,13 +55,10 @@ const Services = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <Badge variant="outline" className="mb-4 border-primary text-primary">
-            Nuestros Servicios
+            {t('services.title')}
           </Badge>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Soluciones integrales para tu{" "}
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              éxito digital
-            </span>
+            {t('services.subtitle')}
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Cada paquete está diseñado para diferentes necesidades y objetivos. 

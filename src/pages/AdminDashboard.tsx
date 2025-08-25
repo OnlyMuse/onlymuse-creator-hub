@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +48,7 @@ interface Lead {
 
 const AdminDashboard: React.FC = () => {
   const { admin, logout, isAuthenticated } = useAdmin();
+  const { t } = useLanguage();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -111,9 +113,9 @@ const AdminDashboard: React.FC = () => {
 
   const getProfileTypeBadge = (type: string) => {
     return type === 'model' ? (
-      <Badge variant="secondary">Modelo</Badge>
+      <Badge variant="secondary">{t('admin.badge.model')}</Badge>
     ) : (
-      <Badge variant="outline">Cliente</Badge>
+      <Badge variant="outline">{t('admin.badge.client')}</Badge>
     );
   };
 
@@ -127,12 +129,12 @@ const AdminDashboard: React.FC = () => {
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">Panel de Administración</h1>
-            <p className="text-muted-foreground">Bienvenido, {admin?.name}</p>
+            <h1 className="text-2xl font-bold">{t('admin.title')}</h1>
+            <p className="text-muted-foreground">{t('admin.welcome')}, {admin?.name}</p>
           </div>
           <Button variant="outline" onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />
-            Cerrar Sesión
+            {t('admin.logout')}
           </Button>
         </div>
       </header>
@@ -142,7 +144,7 @@ const AdminDashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Solicitudes</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('admin.stats.total')}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -152,7 +154,7 @@ const AdminDashboard: React.FC = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Modelos</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('admin.stats.models')}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -162,7 +164,7 @@ const AdminDashboard: React.FC = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Clientes</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('admin.stats.clients')}</CardTitle>
               <Building className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -172,7 +174,7 @@ const AdminDashboard: React.FC = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Hoy</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('admin.stats.today')}</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -184,17 +186,17 @@ const AdminDashboard: React.FC = () => {
         {/* Leads List */}
         <Card>
           <CardHeader>
-            <CardTitle>Solicitudes Recientes</CardTitle>
+            <CardTitle>{t('admin.leads.title')}</CardTitle>
             <CardDescription>
-              Todas las solicitudes recibidas a través del formulario web
+              {t('admin.leads.subtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8">Cargando...</div>
+              <div className="text-center py-8">{t('admin.leads.loading')}</div>
             ) : leads.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No hay solicitudes todavía
+                {t('admin.leads.noData')}
               </div>
             ) : (
               <div className="space-y-6">

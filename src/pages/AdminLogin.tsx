@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +14,7 @@ const AdminLogin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login, isLoading, isAuthenticated } = useAdmin();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,15 +44,15 @@ const AdminLogin: React.FC = () => {
               <Lock className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">Panel de Administración</CardTitle>
+          <CardTitle className="text-2xl text-center">{t('admin.login.title')}</CardTitle>
           <CardDescription className="text-center">
-            Accede con tus credenciales de administrador
+            {t('admin.login.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('admin.login.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -62,7 +64,7 @@ const AdminLogin: React.FC = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">{t('admin.login.password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -82,10 +84,10 @@ const AdminLogin: React.FC = () => {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Iniciando sesión...
+                  {t('admin.login.submitting')}
                 </>
               ) : (
-                'Iniciar Sesión'
+                t('admin.login.submit')
               )}
             </Button>
           </form>

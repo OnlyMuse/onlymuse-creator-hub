@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Users, TrendingUp, Shield } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Hero = () => {
+  const { t } = useLanguage();
   return (
     <section id="inicio" className="relative min-h-screen flex items-center bg-gradient-to-br from-background via-background to-primary/5">
       {/* Background Pattern */}
@@ -18,13 +20,12 @@ const Hero = () => {
 
           {/* Main Headline */}
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
-            Agencia para creadores de OnlyFans orientada a resultados
+            {t('hero.title')}
           </h1>
 
           {/* Subtitle */}
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Estrategia, gestión y crecimiento con enfoque profesional. 
-            Transformamos tu presencia digital en un negocio rentable y sostenible.
+            {t('hero.subtitle')}
           </p>
 
           {/* Trust Indicators */}
@@ -49,7 +50,7 @@ const Hero = () => {
               size="lg" 
               className="bg-primary hover:bg-primary-hover text-primary-foreground px-8 py-6 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              Aplicar como Modelo
+              {t('hero.cta')}
             </Button>
             <Button 
               size="lg" 

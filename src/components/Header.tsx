@@ -1,9 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b">
@@ -31,7 +34,7 @@ const Header = () => {
                 document.getElementById('inicio')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              Inicio
+              {t('header.inicio')}
             </a>
             <a 
               href="#servicios" 
@@ -41,7 +44,7 @@ const Header = () => {
                 document.getElementById('servicios')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              Servicios
+              {t('header.servicios')}
             </a>
             <a 
               href="#proceso" 
@@ -51,7 +54,7 @@ const Header = () => {
                 document.getElementById('proceso')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              Proceso
+              {t('header.proceso')}
             </a>
             <a 
               href="#faq" 
@@ -61,13 +64,14 @@ const Header = () => {
                 document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              FAQ
+              {t('header.faq')}
             </a>
+            <LanguageSwitcher />
             <a 
               href="/admin/login" 
               className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
             >
-              Admin
+              {t('header.admin')}
             </a>
           </nav>
 
@@ -79,7 +83,7 @@ const Header = () => {
                 document.getElementById('aplicar')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              Aplicar como Modelo
+              {t('header.apply')}
             </Button>
           </div>
 
@@ -105,7 +109,7 @@ const Header = () => {
                   setIsMenuOpen(false);
                 }}
               >
-                Inicio
+                {t('header.inicio')}
               </a>
               <a 
                 href="#servicios" 
@@ -116,7 +120,7 @@ const Header = () => {
                   setIsMenuOpen(false);
                 }}
               >
-                Servicios
+                {t('header.servicios')}
               </a>
               <a 
                 href="#proceso" 
@@ -127,7 +131,7 @@ const Header = () => {
                   setIsMenuOpen(false);
                 }}
               >
-                Proceso
+                {t('header.proceso')}
               </a>
               <a 
                 href="#faq" 
@@ -138,8 +142,9 @@ const Header = () => {
                   setIsMenuOpen(false);
                 }}
               >
-                FAQ
+                {t('header.faq')}
               </a>
+              <LanguageSwitcher />
               <div className="pt-4">
                 <Button 
                   className="bg-primary hover:bg-primary-hover w-full"
@@ -148,7 +153,7 @@ const Header = () => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  Aplicar como Modelo
+                  {t('header.apply')}
                 </Button>
               </div>
             </nav>
