@@ -70,33 +70,47 @@ const AdminDashboard: React.FC = () => {
   const fetchLeads = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching leads:', error);
+      if (!admin?.credentials) {
+        console.error('Admin credentials not available');
+        setIsLoading(false);
         return;
       }
 
-      if (data) {
-        setLeads(data);
-        
-        // Calculate stats
-        const today = new Date().toDateString();
-        const todayCount = data.filter(lead => 
-          new Date(lead.created_at).toDateString() === today
-        ).length;
-        
-        const modelCount = data.filter(lead => lead.profile_type === 'model').length;
-        const clientCount = data.filter(lead => lead.profile_type === 'client').length;
-        
+      // Fetch leads using secure admin function
+      const { data: leadsData, error: leadsError } = await supabase
+        .rpc('get_all_leads_for_admin', {
+          admin_email: admin.credentials.email,
+          admin_password: admin.credentials.password
+        });
+
+      // Fetch stats using secure admin function  
+      const { data: statsData, error: statsError } = await supabase
+        .rpc('get_lead_stats_for_admin', {
+          admin_email: admin.credentials.email,
+          admin_password: admin.credentials.password
+        });
+
+      if (leadsError) {
+        console.error('Error fetching leads:', leadsError);
+        return;
+      }
+
+      if (statsError) {
+        console.error('Error fetching stats:', statsError);
+        return;
+      }
+
+      if (leadsData) {
+        setLeads(leadsData);
+      }
+
+      if (statsData && statsData.length > 0) {
+        const stat = statsData[0];
         setStats({
-          total: data.length,
-          models: modelCount,
-          clients: clientCount,
-          today: todayCount
+          total: Number(stat.total_leads),
+          models: Number(stat.model_leads),
+          clients: Number(stat.client_leads),
+          today: Number(stat.today_leads)
         });
       }
     } catch (error) {

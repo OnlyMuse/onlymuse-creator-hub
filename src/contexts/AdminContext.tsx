@@ -5,6 +5,7 @@ interface AdminUser {
   id: string;
   name: string;
   email: string;
+  credentials?: { email: string; password: string }; // Temporary storage for secure functions
 }
 
 interface AdminContextType {
@@ -50,6 +51,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           id: adminData.admin_id,
           name: adminData.admin_name,
           email: adminData.admin_email,
+          credentials: { email, password }, // Store temporarily for secure functions
         };
         
         setAdmin(adminUser);

@@ -121,6 +121,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_all_leads_for_admin: {
+        Args: { admin_email: string; admin_password: string }
+        Returns: {
+          artistic_name: string | null
+          budget: string | null
+          business_type: string | null
+          city: string | null
+          company_name: string | null
+          contact_preference: string | null
+          country: string | null
+          created_at: string
+          current_earnings: string | null
+          email: string
+          experience: string | null
+          goals: string[] | null
+          id: string
+          languages: string[] | null
+          objectives: string | null
+          onlyfans_link: string | null
+          phone: string | null
+          profile_type: string
+          social_links: Json | null
+          time_available: string | null
+          updated_at: string
+        }[]
+      }
+      get_lead_stats_for_admin: {
+        Args: { admin_email: string; admin_password: string }
+        Returns: {
+          client_leads: number
+          model_leads: number
+          today_leads: number
+          total_leads: number
+        }[]
+      }
       update_admin_last_login: {
         Args: { admin_id: string }
         Returns: undefined
