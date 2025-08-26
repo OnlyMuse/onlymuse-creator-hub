@@ -63,7 +63,7 @@ const translations = {
     'faq.a4': 'Trabajamos con un modelo de comisión sobre tus ganancias, sin costos iniciales. Solo ganamos cuando tú ganas.',
     
     // Lead Form
-    'form.title': 'Únete a OnlyMuse',
+  'form.title': 'Únete a OnlynMuse',
     'form.subtitle': 'Completa el formulario y comenzemos a maximizar tus ganancias',
     'form.model': 'Soy Modelo',
     'form.client': 'Soy Cliente',
@@ -202,7 +202,7 @@ const translations = {
     'faq.a4': 'Trabalhamos com um modelo de comissão sobre seus ganhos, sem custos iniciais. Só ganhamos quando você ganha.',
     
     // Lead Form
-    'form.title': 'Junte-se ao OnlyMuse',
+  'form.title': 'Junte-se ao OnlynMuse',
     'form.subtitle': 'Complete o formulário e vamos começar a maximizar seus ganhos',
     'form.model': 'Sou Modelo',
     'form.client': 'Sou Cliente',
@@ -341,7 +341,7 @@ const translations = {
     'faq.a4': 'We work with a commission model on your earnings, with no upfront costs. We only earn when you earn.',
     
     // Lead Form
-    'form.title': 'Join OnlyMuse',
+  'form.title': 'Join OnlynMuse',
     'form.subtitle': 'Complete the form and let\'s start maximizing your earnings',
     'form.model': 'I\'m a Model',
     'form.client': 'I\'m a Client',

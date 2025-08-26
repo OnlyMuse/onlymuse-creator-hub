@@ -19,7 +19,7 @@ const Hero = () => {
           </Badge>
 
           {/* Main Headline */}
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight md:leading-[1.3] tracking-tight bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
             {t('hero.title')}
           </h1>
 
@@ -32,7 +32,7 @@ const Hero = () => {
           <div className="flex flex-wrap justify-center gap-6 mb-10 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
-              <span>+200 modelos activos</span>
+              <span>+30 modelos activas</span>
             </div>
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-success" />

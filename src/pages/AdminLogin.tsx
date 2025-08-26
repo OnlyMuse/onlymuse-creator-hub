@@ -91,9 +91,8 @@ const AdminLogin: React.FC = () => {
               )}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>Email: admin@example.com</p>
-            <p>Contraseña: admin123</p>
+          <div className="mt-4 text-center text-xs text-muted-foreground">
+            <p>Acceso restringido. Usa tus credenciales asignadas.</p>
           </div>
         </CardContent>
       </Card>

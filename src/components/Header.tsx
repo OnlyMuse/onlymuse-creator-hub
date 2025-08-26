@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -15,14 +15,14 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center overflow-hidden">
               <img 
                 src="/lovable-uploads/6318e933-6850-4026-b87e-fe0773b164dd.png" 
-                alt="OnlyMuse" 
-                className="w-8 h-8 object-contain"
+                alt="OnlynMuse" 
+                className="w-8 h-8 object-cover rounded-full"
               />
             </div>
-            <span className="text-xl font-bold text-primary">OnlyMuse</span>
+            <span className="text-xl font-bold text-primary">OnlynMuse</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -68,12 +68,6 @@ const Header = () => {
               {t('header.faq')}
             </a>
             <LanguageSwitcher />
-            <Link 
-              to="/admin/login" 
-              className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
-            >
-              {t('header.admin')}
-            </Link>
           </nav>
 
           {/* CTA Button */}
@@ -95,10 +89,18 @@ const Header = () => {
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
+          {/* Invisible Admin Hotspot */}
+          <Link
+            to="/admin/login"
+            aria-label="Acceso administración"
+            className="absolute top-0 right-0 w-10 h-10 opacity-0 focus:opacity-100 focus:outline-none"
+          >
+            <span className="sr-only">Admin</span>
+          </Link>
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && (
+  {isMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <nav className="flex flex-col space-y-4">
               <a 
@@ -165,4 +167,24 @@ const Header = () => {
   );
 };
 
-export default Header;
+// Keyboard shortcut: Ctrl+Alt+A opens admin login
+// Placed outside component not needed; easier inside via useEffect.
+// Adjust component to add effect.
+
+// Re-export with shortcut enhancement
+const EnhancedHeader = () => {
+  const Component = Header as any;
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.altKey && (e.key === 'a' || e.key === 'A')) {
+        window.location.href = '/admin/login';
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+  return <Component />;
+};
+
+export default EnhancedHeader;
+// NOTE: Original default export replaced by EnhancedHeader.

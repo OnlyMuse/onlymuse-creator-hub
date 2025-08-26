@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,6 +46,12 @@ interface FormData {
 const LeadForm = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showMoreSocial, setShowMoreSocial] = useState(false);
+  const [primaryPlatform, setPrimaryPlatform] = useState<'instagram' | 'tiktok' | 'twitter'>('instagram');
+  const AUTOSAVE_KEY = 'leadFormStateV1';
+  const [errors, setErrors] = useState<Record<string,string>>({});
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const [formData, setFormData] = useState<FormData>({
     isOver18: false,
     profileType: '',
@@ -73,15 +79,15 @@ const LeadForm = () => {
     privacyConsent: false
   });
 
+  // Pasos simplificados para reducir fricción: 3 en lugar de 4
   const steps = [
-    { id: 0, title: "Verificación 18+", icon: Shield },
-    { id: 1, title: "Tipo de Perfil", icon: User },
-    { id: 2, title: "Información Personal", icon: User },
-    { id: 3, title: "Consentimientos", icon: CheckCircle }
+    { id: 0, title: "Verificación & Perfil", icon: Shield },
+    { id: 1, title: "Información", icon: User },
+    { id: 2, title: "Consentimiento", icon: CheckCircle }
   ];
 
   const countries = [
-    "España", "México", "Argentina", "Colombia", "Chile", "Perú", "Venezuela", 
+    "España", "Brasil", "México", "Argentina", "Colombia", "Chile", "Perú", "Venezuela", 
     "Ecuador", "Uruguay", "Paraguay", "Bolivia", "Estados Unidos", "Otro"
   ];
 
@@ -112,6 +118,53 @@ const LeadForm = () => {
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
+  // Autosave & restore
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(AUTOSAVE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.formData) {
+          setFormData(parsed.formData);
+          if (typeof parsed.currentStep === 'number') setCurrentStep(parsed.currentStep);
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const payload = JSON.stringify({ formData, currentStep });
+    try { localStorage.setItem(AUTOSAVE_KEY, payload); } catch {}
+  }, [formData, currentStep]);
+
+  const clearForm = () => {
+    setFormData({
+      isOver18: false,
+      profileType: '',
+      artisticName: '',
+      email: '',
+      country: '',
+      city: '',
+      languages: [],
+      socialLinks: { instagram: '', tiktok: '', twitter: '' },
+      onlyFansLink: '',
+      experience: '',
+      timeAvailable: '',
+      goals: [],
+      currentEarnings: '',
+      contactPreference: '',
+      phone: '',
+      companyName: '',
+      businessType: '',
+      budget: '',
+      objectives: '',
+      privacyConsent: false
+    });
+    setCurrentStep(0);
+    setShowAdvanced(false);
+    try { localStorage.removeItem(AUTOSAVE_KEY); } catch {}
+  };
+
   const nextStep = () => {
     if (validateCurrentStep()) {
       setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
@@ -120,74 +173,57 @@ const LeadForm = () => {
 
   const prevStep = () => {
     setCurrentStep(prev => Math.max(prev - 1, 0));
+    setErrors({});
+  };
+
+  useEffect(() => {
+    // Scroll al inicio del formulario al cambiar de paso para evitar pérdida de contexto
+    if (cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [currentStep]);
+
+  const clearError = (name: string) => {
+    setErrors(prev => {
+      if (!(name in prev)) return prev;
+      const { [name]: _removed, ...rest } = prev;
+      return rest;
+    });
   };
 
   const validateCurrentStep = () => {
+    const newErrors: Record<string,string> = {};
     switch (currentStep) {
       case 0:
-        if (!formData.isOver18) {
-          toast({
-            title: "Verificación requerida",
-            description: "Debes confirmar que eres mayor de 18 años para continuar.",
-            variant: "destructive"
-          });
-          return false;
-        }
-        return true;
+        if (!formData.isOver18) newErrors.isOver18 = 'Requerido';
+        if (!formData.profileType) newErrors.profileType = 'Selecciona una opción';
+        break;
       case 1:
-        if (!formData.profileType) {
-          toast({
-            title: "Selección requerida",
-            description: "Por favor selecciona tu tipo de perfil.",
-            variant: "destructive"
-          });
-          return false;
-        }
-        return true;
-      case 2:
         if (formData.profileType === 'model') {
-          if (!formData.artisticName || !formData.email || !formData.country) {
-            toast({
-              title: "Campos requeridos",
-              description: "Por favor completa todos los campos obligatorios.",
-              variant: "destructive"
-            });
-            return false;
-          }
-          // Validate at least one social link
-          const hasSocialLink = Object.values(formData.socialLinks).some(link => link.trim() !== '');
-          if (!hasSocialLink) {
-            toast({
-              title: "Red social requerida",
-              description: "Proporciona al menos un enlace de red social.",
-              variant: "destructive"
-            });
-            return false;
-          }
+          if (!formData.artisticName) newErrors.artisticName = 'Obligatorio';
+          if (!formData.email) newErrors.email = 'Obligatorio';
+          if (!formData.country) newErrors.country = 'Obligatorio';
+          const primaryValue = formData.socialLinks[primaryPlatform];
+          if (!primaryValue || primaryValue.trim() === '') newErrors.primarySocial = 'Introduce tu usuario o URL';
         } else if (formData.profileType === 'client') {
-          if (!formData.companyName || !formData.email || !formData.businessType) {
-            toast({
-              title: "Campos requeridos",
-              description: "Por favor completa todos los campos obligatorios.",
-              variant: "destructive"
-            });
-            return false;
-          }
+          if (!formData.companyName) newErrors.companyName = 'Obligatorio';
+          if (!formData.email) newErrors.email = 'Obligatorio';
+          if (!formData.businessType) newErrors.businessType = 'Obligatorio';
         }
-        return true;
-      case 3:
-        if (!formData.privacyConsent) {
-          toast({
-            title: "Consentimiento requerido",
-            description: "Debes aceptar la política de privacidad para continuar.",
-            variant: "destructive"
-          });
-          return false;
-        }
-        return true;
-      default:
-        return true;
+        break;
+      case 2:
+        if (!formData.privacyConsent) newErrors.privacyConsent = 'Necesario';
+        break;
     }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length) {
+      toast({
+        title: 'Revisa los campos marcados',
+        description: 'Faltan datos obligatorios o hay errores.',
+        variant: 'destructive'
+      });
+    }
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
@@ -231,29 +267,7 @@ const LeadForm = () => {
         });
 
         // Reset form
-        setFormData({
-          isOver18: false,
-          profileType: '',
-          artisticName: '',
-          email: '',
-          country: '',
-          city: '',
-          languages: [],
-          socialLinks: { instagram: '', tiktok: '', twitter: '' },
-          onlyFansLink: '',
-          experience: '',
-          timeAvailable: '',
-          goals: [],
-          currentEarnings: '',
-          contactPreference: '',
-          phone: '',
-          companyName: '',
-          businessType: '',
-          budget: '',
-          objectives: '',
-          privacyConsent: false
-        });
-        setCurrentStep(0);
+  clearForm();
 
       } catch (error) {
         console.error('Error saving lead:', error);
@@ -285,24 +299,31 @@ const LeadForm = () => {
   };
 
   return (
-    <section id="aplicar" className="py-20 bg-gradient-to-br from-background to-primary/5">
+    <section id="aplicar" className="py-24 bg-gradient-to-br from-background to-primary/5 scroll-mt-20">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
+          <div className="text-center mb-10">
             <Badge variant="outline" className="mb-4 border-primary text-primary">
               Proceso de Aplicación
             </Badge>
             <h2 className="text-3xl font-bold mb-4">
               Comienza tu transformación digital
             </h2>
-            <p className="text-muted-foreground">
-              Completa este formulario para una evaluación personalizada
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Completa el formulario (menos de 2 minutos). Solo pedimos lo esencial para darte una respuesta personalizada.
             </p>
           </div>
 
-          <Card className="p-8">
+          <Card ref={cardRef} className="p-8 relative overflow-hidden">
+            <button onClick={clearForm} className="absolute top-4 right-4 text-xs text-muted-foreground hover:text-primary underline underline-offset-2">
+              Reiniciar
+            </button>
             {/* Progress Bar */}
             <div className="mb-8">
+              <div className="flex justify-between mb-2 text-xs font-medium text-muted-foreground">
+                <span>Paso {currentStep + 1} de {steps.length}</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
               <div className="flex justify-between mb-2">
                 {steps.map((step, index) => {
                   const IconComponent = step.icon;
@@ -326,75 +347,74 @@ const LeadForm = () => {
               <Progress value={progress} className="h-2" />
             </div>
 
-            {/* Step Content */}
-            <div className="space-y-6">
-              {/* Step 0: Age Verification */}
+              {/* Step Content */}
+            <div className="space-y-6 min-h-[620px] transition-[min-height] duration-300 ease-in-out">
+              {/* Step 0: Age + Profile */}
               {currentStep === 0 && (
-                <div className="text-center space-y-6">
-                  <Shield className="w-16 h-16 text-primary mx-auto" />
-                  <h3 className="text-2xl font-semibold">Verificación de Edad</h3>
-                  <p className="text-muted-foreground">
-                    OnlyMuse trabaja exclusivamente con personas mayores de 18 años. 
-                    Esta verificación es obligatoria por motivos legales y de cumplimiento.
-                  </p>
-                  <div className="flex items-center space-x-2 justify-center">
-                    <Checkbox
-                      id="over18"
-                      checked={formData.isOver18}
-                      onCheckedChange={(checked) => 
-                        setFormData(prev => ({ ...prev, isOver18: checked as boolean }))
-                      }
-                    />
-                    <Label htmlFor="over18" className="text-base font-medium">
-                      Confirmo que tengo 18 años o más
-                    </Label>
+                <div className="space-y-8">
+                  <div className="text-center space-y-4">
+                    <Shield className="w-14 h-14 text-primary mx-auto" />
+                    <h3 className="text-2xl font-semibold">Verificación & Tipo de Perfil</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Trabajamos únicamente con mayores de edad y personalizamos la experiencia según tu rol.
+                    </p>
+                    <div className="flex items-center space-x-2 justify-center">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="over18"
+                          checked={formData.isOver18}
+                          onCheckedChange={(checked) => {
+                            clearError('isOver18');
+                            setFormData(prev => ({ ...prev, isOver18: checked as boolean }));
+                          }}
+                          className={errors.isOver18 ? 'border-destructive data-[state=checked]:bg-destructive' : ''}
+                        />
+                        <Label htmlFor="over18" className="text-sm font-medium flex items-center gap-2">
+                          Confirmo que tengo 18 años o más
+                          {errors.isOver18 && <span className="text-destructive text-[10px]">{errors.isOver18}</span>}
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <RadioGroup
+                      value={formData.profileType}
+                      onValueChange={(value) => 
+                        setFormData(prev => ({ ...prev, profileType: value as 'model' | 'client' }))
+                    }>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Label htmlFor="model" className="cursor-pointer">
+                          <Card className={`p-6 h-full hover:border-primary transition-colors relative ${
+                            formData.profileType === 'model' ? 'border-primary bg-primary/5' : ''
+                          } ${errors.profileType ? 'border-destructive' : ''}`}>
+                            <RadioGroupItem value="model" id="model" className="sr-only" />
+                            <User className="w-8 h-8 text-primary mb-3" />
+                            <h4 className="font-semibold mb-1">Soy Modelo/Creador(a)</h4>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              Quiero crecer en OnlyFans con gestión profesional
+                            </p>
+                          </Card>
+                        </Label>
+                        <Label htmlFor="client" className="cursor-pointer">
+                          <Card className={`p-6 h-full hover:border-primary transition-colors relative ${
+                            formData.profileType === 'client' ? 'border-primary bg-primary/5' : ''
+                          } ${errors.profileType ? 'border-destructive' : ''}`}>
+                            <RadioGroupItem value="client" id="client" className="sr-only" />
+                            <Briefcase className="w-8 h-8 text-primary mb-3" />
+                            <h4 className="font-semibold mb-1">Soy Cliente/Empresa</h4>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              Busco servicios para modelos o consultoría estratégica
+                            </p>
+                          </Card>
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 </div>
               )}
 
-              {/* Step 1: Profile Type */}
+              {/* Step 1: Personal / Business Information */}
               {currentStep === 1 && (
-                <div className="space-y-6">
-                  <h3 className="text-2xl font-semibold text-center">Selecciona tu perfil</h3>
-                  <RadioGroup
-                    value={formData.profileType}
-                    onValueChange={(value) => 
-                      setFormData(prev => ({ ...prev, profileType: value as 'model' | 'client' }))
-                    }
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Label htmlFor="model" className="cursor-pointer">
-                        <Card className={`p-6 hover:border-primary transition-colors ${
-                          formData.profileType === 'model' ? 'border-primary bg-primary/5' : ''
-                        }`}>
-                          <RadioGroupItem value="model" id="model" className="sr-only" />
-                          <User className="w-8 h-8 text-primary mb-4" />
-                          <h4 className="font-semibold mb-2">Soy Modelo/Creador(a)</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Quiero hacer crecer mi negocio en OnlyFans con gestión profesional
-                          </p>
-                        </Card>
-                      </Label>
-
-                      <Label htmlFor="client" className="cursor-pointer">
-                        <Card className={`p-6 hover:border-primary transition-colors ${
-                          formData.profileType === 'client' ? 'border-primary bg-primary/5' : ''
-                        }`}>
-                          <RadioGroupItem value="client" id="client" className="sr-only" />
-                          <Briefcase className="w-8 h-8 text-primary mb-4" />
-                          <h4 className="font-semibold mb-2">Soy Cliente/Empresa</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Busco servicios profesionales para modelos o consultoría estratégica
-                          </p>
-                        </Card>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              )}
-
-              {/* Step 2: Personal Information */}
-              {currentStep === 2 && (
                 <div className="space-y-6">
                   <h3 className="text-2xl font-semibold text-center">
                     {formData.profileType === 'model' ? 'Información del Modelo' : 'Información de la Empresa'}
@@ -408,9 +428,11 @@ const LeadForm = () => {
                           <Input
                             id="artisticName"
                             value={formData.artisticName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, artisticName: e.target.value }))}
+                            onChange={(e) => { clearError('artisticName'); setFormData(prev => ({ ...prev, artisticName: e.target.value })); }}
                             placeholder="Tu nombre artístico"
+                            className={errors.artisticName ? 'border-destructive focus-visible:ring-destructive' : ''}
                           />
+                          {errors.artisticName && <p className="mt-1 text-xs text-destructive">{errors.artisticName}</p>}
                         </div>
                         <div>
                           <Label htmlFor="email">Email *</Label>
@@ -418,19 +440,22 @@ const LeadForm = () => {
                             id="email"
                             type="email"
                             value={formData.email}
-                            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                            onChange={(e) => { clearError('email'); setFormData(prev => ({ ...prev, email: e.target.value })); }}
                             placeholder="tu@email.com"
+                            className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
                           />
+                          {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="country">País *</Label>
-                          <Select value={formData.country} onValueChange={(value) => 
-                            setFormData(prev => ({ ...prev, country: value }))
-                          }>
-                            <SelectTrigger>
+                          <Select value={formData.country} onValueChange={(value) => {
+                            clearError('country');
+                            setFormData(prev => ({ ...prev, country: value }));
+                          }}>
+                            <SelectTrigger className={errors.country ? 'border-destructive focus:ring-destructive' : ''}>
                               <SelectValue placeholder="Selecciona tu país" />
                             </SelectTrigger>
                             <SelectContent>
@@ -439,6 +464,7 @@ const LeadForm = () => {
                               ))}
                             </SelectContent>
                           </Select>
+                          {errors.country && <p className="mt-1 text-xs text-destructive">{errors.country}</p>}
                         </div>
                         <div>
                           <Label htmlFor="city">Ciudad</Label>
@@ -466,45 +492,59 @@ const LeadForm = () => {
                         </div>
                       </div>
 
-                      <div>
-                        <Label>Redes Sociales (al menos una requerida)</Label>
-                        <div className="space-y-3 mt-2">
-                          <div>
-                            <Label htmlFor="instagram" className="text-sm text-muted-foreground">Instagram</Label>
-                            <Input
-                              id="instagram"
-                              value={formData.socialLinks.instagram}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                socialLinks: { ...prev.socialLinks, instagram: e.target.value }
-                              }))}
-                              placeholder="https://instagram.com/tu-usuario"
-                            />
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2">Red Social Principal <span className="text-xs text-muted-foreground font-normal">(obligatoria)</span></Label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {(['instagram','tiktok','twitter'] as const).map(p => (
+                              <button
+                                key={p}
+                                type="button"
+                                onClick={() => setPrimaryPlatform(p)}
+                                className={`text-xs rounded-md border px-2 py-1.5 capitalize transition-colors ${primaryPlatform===p? 'bg-primary text-primary-foreground border-primary':'hover:border-primary/50'}`}
+                              >
+                                {p === 'twitter' ? 'X/Twitter' : p}
+                              </button>
+                            ))}
                           </div>
-                          <div>
-                            <Label htmlFor="tiktok" className="text-sm text-muted-foreground">TikTok</Label>
-                            <Input
-                              id="tiktok"
-                              value={formData.socialLinks.tiktok}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                socialLinks: { ...prev.socialLinks, tiktok: e.target.value }
-                              }))}
-                              placeholder="https://tiktok.com/@tu-usuario"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="twitter" className="text-sm text-muted-foreground">X/Twitter</Label>
-                            <Input
-                              id="twitter"
-                              value={formData.socialLinks.twitter}
-                              onChange={(e) => setFormData(prev => ({
-                                ...prev,
-                                socialLinks: { ...prev.socialLinks, twitter: e.target.value }
-                              }))}
-                              placeholder="https://twitter.com/tu-usuario"
-                            />
-                          </div>
+                          <Input
+                            value={formData.socialLinks[primaryPlatform]}
+                            onChange={(e) => { clearError('primarySocial'); setFormData(prev => ({
+                              ...prev,
+                              socialLinks: { ...prev.socialLinks, [primaryPlatform]: e.target.value }
+                            })); }}
+                            placeholder={`URL o usuario de ${primaryPlatform==='twitter'?'X/Twitter':primaryPlatform}`}
+                            className={errors.primarySocial ? 'border-destructive focus-visible:ring-destructive' : ''}
+                          />
+                          {errors.primarySocial && <p className="mt-1 text-xs text-destructive">{errors.primarySocial}</p>}
+                          <p className="text-[11px] text-muted-foreground">Solo necesitamos una red para validar tu presencia. Puedes añadir más si quieres.</p>
+                        </div>
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => setShowMoreSocial(s=>!s)}
+                            className="text-xs font-medium text-primary hover:underline"
+                          >
+                            {showMoreSocial ? 'Ocultar redes adicionales' : 'Añadir redes adicionales (opcional)'}
+                          </button>
+                          {showMoreSocial && (
+                            <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 animate-in fade-in-50">
+                              {(['instagram','tiktok','twitter'] as const).filter(p=>p!==primaryPlatform).map(p => (
+                                <div key={p} className="space-y-1">
+                                  <Label htmlFor={`extra-${p}`} className="text-[11px] text-muted-foreground">{p==='twitter'?'X/Twitter':p}</Label>
+                                  <Input
+                                    id={`extra-${p}`}
+                                    value={formData.socialLinks[p]}
+                                    onChange={(e) => setFormData(prev => ({
+                                      ...prev,
+                                      socialLinks: { ...prev.socialLinks, [p]: e.target.value }
+                                    }))}
+                                    placeholder={p==='twitter'? 'https://twitter.com/usuario' : `https://${p}.com/usuario`}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -551,19 +591,44 @@ const LeadForm = () => {
                         </div>
                       </div>
 
-                      <div>
-                        <Label>Objetivos principales (selecciona todos los que apliquen)</Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                          {goalOptions.map((goal) => (
-                            <Label key={goal} className="flex items-center space-x-2 cursor-pointer">
-                              <Checkbox
-                                checked={formData.goals.includes(goal)}
-                                onCheckedChange={() => toggleGoal(goal)}
-                              />
-                              <span className="text-sm">{goal}</span>
-                            </Label>
-                          ))}
-                        </div>
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowAdvanced(s => !s)}
+                          className="text-xs font-medium text-primary hover:underline"
+                        >
+                          {showAdvanced ? 'Ocultar detalles opcionales' : 'Mostrar detalles opcionales'}
+                        </button>
+                        {showAdvanced && (
+                          <div className="mt-4 space-y-6 animate-in fade-in-50">
+                            <div>
+                              <Label>Objetivos principales (selecciona todos los que apliquen)</Label>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                {goalOptions.map((goal) => (
+                                  <Label key={goal} className="flex items-center space-x-2 cursor-pointer">
+                                    <Checkbox
+                                      checked={formData.goals.includes(goal)}
+                                      onCheckedChange={() => toggleGoal(goal)}
+                                    />
+                                    <span className="text-sm">{goal}</span>
+                                  </Label>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-end">
+                        {formData.profileType && (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="mt-2"
+                            onClick={() => { setCurrentStep(2); }}
+                          >
+                            Ir a Consentimiento
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -633,8 +698,8 @@ const LeadForm = () => {
                 </div>
               )}
 
-              {/* Step 3: Consent */}
-              {currentStep === 3 && (
+              {/* Step 2: Consent */}
+              {currentStep === 2 && (
                 <div className="text-center space-y-6">
                   <CheckCircle className="w-16 h-16 text-primary mx-auto" />
                   <h3 className="text-2xl font-semibold">Consentimientos Finales</h3>
@@ -643,9 +708,11 @@ const LeadForm = () => {
                       <Checkbox
                         id="privacy"
                         checked={formData.privacyConsent}
-                        onCheckedChange={(checked) => 
-                          setFormData(prev => ({ ...prev, privacyConsent: checked as boolean }))
-                        }
+                        onCheckedChange={(checked) => {
+                          clearError('privacyConsent');
+                          setFormData(prev => ({ ...prev, privacyConsent: checked as boolean }));
+                        }}
+                        className={errors.privacyConsent ? 'border-destructive data-[state=checked]:bg-destructive' : ''}
                       />
                       <div>
                         <Label htmlFor="privacy" className="text-base font-medium">
@@ -655,6 +722,7 @@ const LeadForm = () => {
                           Tus datos serán tratados de forma confidencial y únicamente para proporcionarte 
                           los servicios solicitados. Puedes solicitar su eliminación en cualquier momento.
                         </p>
+                        {errors.privacyConsent && <p className="mt-2 text-xs text-destructive">{errors.privacyConsent}</p>}
                       </div>
                     </div>
                   </div>
@@ -673,7 +741,7 @@ const LeadForm = () => {
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t">
+            <div className="flex justify-between mt-8 pt-6 border-t sticky bottom-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <Button
                 variant="outline"
                 onClick={prevStep}

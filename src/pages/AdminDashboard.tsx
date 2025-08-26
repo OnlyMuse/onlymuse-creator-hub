@@ -18,7 +18,8 @@ import {
   Target,
   DollarSign,
   Clock,
-  Building
+  Building,
+  Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -57,6 +58,9 @@ const AdminDashboard: React.FC = () => {
     clients: 0,
     today: 0
   });
+  const [filterType, setFilterType] = useState<'all' | 'model' | 'client'>('all');
+  const [sortNewest, setSortNewest] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -120,6 +124,45 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const deleteLead = async (id: string) => {
+    if (!window.confirm('¿Eliminar este lead de forma permanente?')) return;
+    if (!admin?.credentials) {
+      alert('Credenciales admin no disponibles. Inicia sesión de nuevo.');
+      return;
+    }
+    setDeletingId(id);
+    try {
+  // @ts-expect-error RPC function created in DB but not yet in generated types
+  const { error, data } = await supabase.rpc('delete_lead_admin', {
+        admin_email: admin.credentials.email,
+        admin_password: admin.credentials.password,
+        lead_id: id
+      });
+      if (error) {
+        console.error('Error deleting lead via RPC:', error);
+        alert('No se pudo eliminar (RPC). Revisa función y políticas.');
+        return;
+      }
+  // We expect the RPC to return { success: boolean }
+  if (data && (data as any).success) {
+        setLeads(prev => prev.filter(l => l.id !== id));
+        setStats(prev => ({
+          ...prev,
+          total: prev.total - 1,
+          models: prev.models - (leads.find(l => l.id === id && l.profile_type === 'model') ? 1 : 0),
+          clients: prev.clients - (leads.find(l => l.id === id && l.profile_type === 'client') ? 1 : 0)
+        }));
+      } else {
+        alert('Respuesta inesperada al eliminar.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error inesperado al eliminar.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
@@ -131,6 +174,39 @@ const AdminDashboard: React.FC = () => {
     ) : (
       <Badge variant="outline">{t('admin.badge.client')}</Badge>
     );
+  };
+
+  const filteredLeads = leads
+    .filter(l => filterType === 'all' || l.profile_type === filterType)
+    .sort((a, b) => sortNewest
+      ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      : new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+  const exportCSV = () => {
+    const rows = [
+      ['id','profile_type','email','artistic_name','company_name','country','city','languages','current_earnings','budget','created_at'] as const,
+      ...filteredLeads.map(l => [
+        l.id,
+        l.profile_type,
+        l.email,
+        l.artistic_name || '',
+        l.company_name || '',
+        l.country || '',
+        l.city || '',
+        (l.languages || []).join('|'),
+        l.current_earnings || '',
+        l.budget || '',
+        l.created_at
+      ])
+    ];
+    const csv = rows.map(r => r.map(value => `"${String(value).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `leads_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (!isAuthenticated) {
@@ -153,7 +229,7 @@ const AdminDashboard: React.FC = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+  <div className="container mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
@@ -197,25 +273,35 @@ const AdminDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Leads List */}
+        {/* Leads Controls + List */}
         <Card>
-          <CardHeader>
-            <CardTitle>{t('admin.leads.title')}</CardTitle>
-            <CardDescription>
-              {t('admin.leads.subtitle')}
-            </CardDescription>
+          <CardHeader className="space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <CardTitle>{t('admin.leads.title')}</CardTitle>
+                <CardDescription>{t('admin.leads.subtitle')}</CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button variant={filterType==='all'? 'default':'outline'} size="sm" onClick={()=>setFilterType('all')}>Todos</Button>
+                <Button variant={filterType==='model'? 'default':'outline'} size="sm" onClick={()=>setFilterType('model')}>Modelos</Button>
+                <Button variant={filterType==='client'? 'default':'outline'} size="sm" onClick={()=>setFilterType('client')}>Clientes</Button>
+                <Button variant="outline" size="sm" onClick={()=>setSortNewest(!sortNewest)}>{sortNewest? 'Más recientes' : 'Más antiguos'}</Button>
+                <Button variant="outline" size="sm" onClick={fetchLeads}>Refrescar</Button>
+                <Button variant="outline" size="sm" onClick={exportCSV}>Exportar CSV</Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8">{t('admin.leads.loading')}</div>
-            ) : leads.length === 0 ? (
+            ) : filteredLeads.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 {t('admin.leads.noData')}
               </div>
             ) : (
               <div className="space-y-6">
-                {leads.map((lead) => (
-                  <div key={lead.id} className="p-6 border rounded-lg space-y-4">
+                {filteredLeads.map((lead) => (
+                  <div key={lead.id} className="p-6 border rounded-lg space-y-4 relative">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -231,6 +317,20 @@ const AdminDashboard: React.FC = () => {
                           }
                         </h3>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => deleteLead(lead.id)}
+                        disabled={deletingId === lead.id}
+                        title="Eliminar lead"
+                      >
+                        {deletingId === lead.id ? (
+                          <span className="animate-pulse text-xs">…</span>
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
