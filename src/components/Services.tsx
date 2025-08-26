@@ -109,6 +109,9 @@ const Services = () => {
                   <Button 
                     variant={service.popular ? "default" : "outline"}
                     className={service.popular ? "bg-primary hover:bg-primary-hover" : "border-primary text-primary hover:bg-primary hover:text-primary-foreground"}
+                    onClick={() => {
+                      document.getElementById('aplicar')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
                   >
                     Más Información
                   </Button>
@@ -140,7 +143,13 @@ const Services = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button size="lg" className="bg-primary hover:bg-primary-hover px-8">
+          <Button 
+            size="lg" 
+            className="bg-primary hover:bg-primary-hover px-8"
+            onClick={() => {
+              document.getElementById('aplicar')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
             Ver Todos los Servicios
           </Button>
         </div>

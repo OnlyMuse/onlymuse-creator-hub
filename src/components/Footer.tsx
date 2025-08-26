@@ -33,7 +33,13 @@ const Footer = () => {
                 className="flex-1"
                 type="email"
               />
-              <Button className="bg-primary hover:bg-primary-hover">
+              <Button 
+                className="bg-primary hover:bg-primary-hover"
+                onClick={() => {
+                  // Aquí podrías integrar con un servicio de newsletter como Mailchimp
+                  alert('¡Funcionalidad de newsletter próximamente!');
+                }}
+              >
                 Suscribirme
               </Button>
             </div>
@@ -62,13 +68,28 @@ const Footer = () => {
                 Transformamos tu presencia digital en un negocio rentable y sostenible.
               </p>
               <div className="flex space-x-3">
-                <Button variant="outline" size="sm" className="p-2 h-auto">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="p-2 h-auto"
+                  onClick={() => window.open('https://instagram.com/onlymuse.agency', '_blank')}
+                >
                   <Instagram size={16} />
                 </Button>
-                <Button variant="outline" size="sm" className="p-2 h-auto">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="p-2 h-auto"
+                  onClick={() => window.open('https://twitter.com/onlymuse', '_blank')}
+                >
                   <Twitter size={16} />
                 </Button>
-                <Button variant="outline" size="sm" className="p-2 h-auto">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="p-2 h-auto"
+                  onClick={() => window.location.href = 'mailto:hola@onlymuse.agency'}
+                >
                   <Mail size={16} />
                 </Button>
               </div>

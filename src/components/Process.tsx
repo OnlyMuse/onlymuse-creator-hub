@@ -169,7 +169,13 @@ const Process = () => {
 
           {/* CTA */}
           <div className="text-center mt-12">
-            <Button size="lg" className="bg-primary hover:bg-primary-hover px-8">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary-hover px-8"
+              onClick={() => {
+                document.getElementById('aplicar')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               Comenzar mi Transformación
             </Button>
           </div>

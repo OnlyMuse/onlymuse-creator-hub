@@ -49,6 +49,9 @@ const Hero = () => {
             <Button 
               size="lg" 
               className="bg-primary hover:bg-primary-hover text-primary-foreground px-8 py-6 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              onClick={() => {
+                document.getElementById('aplicar')?.scrollIntoView({ behavior: 'smooth' });
+              }}
             >
               {t('hero.cta')}
             </Button>
@@ -56,6 +59,9 @@ const Hero = () => {
               size="lg" 
               variant="outline" 
               className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-6 text-lg font-semibold rounded-lg transition-all duration-300"
+              onClick={() => {
+                document.getElementById('servicios')?.scrollIntoView({ behavior: 'smooth' });
+              }}
             >
               Solicitar Propuesta
             </Button>

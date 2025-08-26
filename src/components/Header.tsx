@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -67,12 +68,12 @@ const Header = () => {
               {t('header.faq')}
             </a>
             <LanguageSwitcher />
-            <a 
-              href="/admin/login" 
+            <Link 
+              to="/admin/login" 
               className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
             >
               {t('header.admin')}
-            </a>
+            </Link>
           </nav>
 
           {/* CTA Button */}
